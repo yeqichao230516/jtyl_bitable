@@ -28,6 +28,10 @@ func SearchRecords(appToken, tableId string, pageSize int, body *larkbitable.Sea
 			global.LOGGER.Errorf("SearchAppTableRecord error: %v", err)
 			return nil
 		}
+		if resp == nil || resp.Data == nil {
+			global.LOGGER.Error("SearchAppTableRecord resp or resp.Data is nil")
+			return nil
+		}
 
 		for _, item := range resp.Data.Items {
 			if item == nil || item.Fields == nil {
@@ -36,10 +40,19 @@ func SearchRecords(appToken, tableId string, pageSize int, body *larkbitable.Sea
 			records = append(records, item.Fields)
 		}
 
-		if !*resp.Data.HasMore || *resp.Data.PageToken == "" {
+		hasMore := false
+		if resp.Data.HasMore != nil {
+			hasMore = *resp.Data.HasMore
+		}
+		nextPageToken := ""
+		if resp.Data.PageToken != nil {
+			nextPageToken = *resp.Data.PageToken
+		}
+
+		if !hasMore || nextPageToken == "" {
 			break
 		}
-		pageToken = *resp.Data.PageToken
+		pageToken = nextPageToken
 	}
 	return records
 }
