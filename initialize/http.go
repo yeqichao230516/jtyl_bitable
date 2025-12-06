@@ -12,11 +12,18 @@ import (
 
 func Http() *http.Server {
 	r := gin.Default()
+	r.Use(middleware.ContentTypeJSON())
 	r.GET("/ping", api.Ping)
-	protected := r.Group("/jtcw_bitable")
-	protected.Use(middleware.BearerToken())
+	// jtcw := r.Group("/jtcw")
+	// jtcw.Use(middleware.BearerToken())
+	// {
+	// 	jtcw.POST("/customer_details", api.PostCustomerDetails)
+
+	// }
+	bltj := r.Group("/bltj")
+	bltj.Use(middleware.BearerToken())
 	{
-		protected.POST("/customer_details", api.PostCustomerDetails)
+		bltj.POST("/performance", api.Performance)
 
 	}
 

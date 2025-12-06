@@ -12,10 +12,14 @@ import (
 	larkbitable "github.com/larksuite/oapi-sdk-go/v3/service/bitable/v1"
 )
 
+type CustomerDetailsRequest struct {
+	Data any `json:"data"`
+}
+
 func PostCustomerDetails(c *gin.Context) {
-	var req model.Req
+	var req CustomerDetailsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, model.Resp{
+		c.JSON(400, model.ErrorResp{
 			Code: 1,
 			Msg:  "请求参数错误",
 		})
@@ -30,7 +34,7 @@ func PostCustomerDetails(c *gin.Context) {
 	if len(global.RECORDS_ID) > 0 {
 		err := service.BatchDeleteRecords(appToken, companyDetailTableId, global.RECORDS_ID)
 		if err != nil {
-			c.JSON(400, model.Resp{
+			c.JSON(400, model.ErrorResp{
 				Code: 400,
 				Msg:  "删除失败",
 			})
@@ -154,7 +158,7 @@ func PostCustomerDetails(c *gin.Context) {
 
 	global.RECORDS_ID = append(global.RECORDS_ID, createdIds...)
 
-	c.JSON(200, model.Resp{
+	c.JSON(200, model.SuccessResp{
 		Code: 0,
 		Msg:  "success",
 	})

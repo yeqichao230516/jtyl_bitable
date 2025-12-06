@@ -28,6 +28,10 @@ func SearchRecords(appToken, tableId string, pageSize int, body *larkbitable.Sea
 			global.LOGGER.Errorf("SearchAppTableRecord error: %v", err)
 			return nil
 		}
+		if !resp.Success() {
+			fmt.Printf("logId: %s, error response: \n%s", resp.RequestId(), larkcore.Prettify(resp.CodeError))
+			return nil
+		}
 		if resp == nil || resp.Data == nil {
 			global.LOGGER.Error("SearchAppTableRecord resp or resp.Data is nil")
 			return nil

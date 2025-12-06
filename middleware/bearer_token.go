@@ -13,7 +13,7 @@ func BearerToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, model.Resp{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, model.ErrorResp{
 				Code: http.StatusUnauthorized,
 				Msg:  "Authorization header is missing",
 			})
@@ -22,7 +22,7 @@ func BearerToken() gin.HandlerFunc {
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, model.Resp{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, model.ErrorResp{
 				Code: http.StatusUnauthorized,
 				Msg:  "Authorization header format must be Bearer {token}",
 			})
@@ -31,7 +31,7 @@ func BearerToken() gin.HandlerFunc {
 
 		token := parts[1]
 		if token == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, model.Resp{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, model.ErrorResp{
 				Code: http.StatusUnauthorized,
 				Msg:  "Token not found",
 			})
@@ -39,7 +39,7 @@ func BearerToken() gin.HandlerFunc {
 		}
 
 		if token != global.CONFIG.Token {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, model.Resp{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, model.ErrorResp{
 				Code: http.StatusUnauthorized,
 				Msg:  "Invalid token",
 			})

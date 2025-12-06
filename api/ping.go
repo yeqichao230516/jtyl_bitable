@@ -7,8 +7,8 @@ import (
 )
 
 func Ping(c *gin.Context) {
-	c.JSON(200, model.Resp{
-		Code: 0,
-		Msg:  "pong",
+	c.JSON(200, model.SuccessResp{
+		Code: 200,
+		Msg:  "success",
 	})
 }
