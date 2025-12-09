@@ -15,5 +15,6 @@ func initializeSystem() {
 	global.VIPER = initialize.Viper()
 	global.CONFIG = initialize.Config()
 	global.FEISHU = initialize.FeiShu()
+	global.HOOK = initialize.Hook()
 	global.HTTP = initialize.Http()
 }

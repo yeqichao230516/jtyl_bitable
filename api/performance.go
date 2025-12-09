@@ -10,26 +10,26 @@ import (
 	larkbitable "github.com/larksuite/oapi-sdk-go/v3/service/bitable/v1"
 )
 
-type PerformanceRequest struct {
+type performanceRequest struct {
 	AppToken        string `json:"appToken"`
 	ParameterTable  string `json:"参数表"`
 	StatisticsTable string `json:"统计表"`
 	RecordID        string `json:"记录ID"`
-	Specification   string `json:"型号"`
 	Process         string `json:"工序"`
+	Specification   string `json:"型号"`
 	Alarm           string `json:"告警"`
 }
+
 type PerformanceResponse struct {
 	PerformanceLevel  string  `json:"绩效等级"`
 	PerformanceAmount float64 `json:"绩效金额"`
 }
 
 func Performance(c *gin.Context) {
-	var req PerformanceRequest
+	var req performanceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, model.ErrorResp{
-			Code: http.StatusBadRequest,
-			Msg:  "bad request",
+			Msg: "bad request",
 		})
 		return
 	}
@@ -75,8 +75,7 @@ func Performance(c *gin.Context) {
 			"绩效等级": "无",
 		})
 		c.JSON(http.StatusOK, model.SuccessResp{
-			Code: http.StatusOK,
-			Msg:  "success",
+			Msg: "success",
 			Data: PerformanceResponse{
 				PerformanceLevel: "无",
 			},
@@ -88,8 +87,7 @@ func Performance(c *gin.Context) {
 			"绩效等级": "无",
 		})
 		c.JSON(http.StatusOK, model.SuccessResp{
-			Code: http.StatusOK,
-			Msg:  "success",
+			Msg: "success",
 			Data: PerformanceResponse{
 				PerformanceLevel: "无",
 			},
@@ -108,8 +106,7 @@ func Performance(c *gin.Context) {
 			"绩效等级": "无",
 		})
 		c.JSON(http.StatusOK, model.SuccessResp{
-			Code: http.StatusOK,
-			Msg:  "success",
+			Msg: "success",
 			Data: PerformanceResponse{
 				PerformanceLevel: "无",
 			},
@@ -150,9 +147,11 @@ func Performance(c *gin.Context) {
 		"绩效等级": performance,
 		"绩效金额": records_parameter[0][performance].(float64),
 	})
-
-	c.JSON(http.StatusOK, PerformanceResponse{
-		PerformanceLevel:  performance,
-		PerformanceAmount: records_parameter[0][performance].(float64),
+	c.JSON(http.StatusOK, model.SuccessResp{
+		Msg: "success",
+		Data: PerformanceResponse{
+			PerformanceLevel:  performance,
+			PerformanceAmount: records_parameter[0][performance].(float64),
+		},
 	})
 }

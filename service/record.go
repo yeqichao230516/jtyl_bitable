@@ -61,7 +61,7 @@ func SearchRecords(appToken, tableId string, pageSize int, body *larkbitable.Sea
 	return records
 }
 
-func UpdateRecord(appToken, tableId, recordId string, fields map[string]any) {
+func UpdateRecord(appToken, tableId, recordId string, fields map[string]any) error {
 	req := larkbitable.NewUpdateAppTableRecordReqBuilder().
 		AppToken(appToken).
 		TableId(tableId).
@@ -75,8 +75,9 @@ func UpdateRecord(appToken, tableId, recordId string, fields map[string]any) {
 
 	if err != nil {
 		global.LOGGER.Errorf("UpdateAppTableRecord error: %v", err)
-		return
+		return err
 	}
+	return nil
 }
 
 func BatchCreateRecords(appToken, tableId string, records []*larkbitable.AppTableRecord) []string {

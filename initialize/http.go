@@ -8,22 +8,20 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	sdkginext "github.com/larksuite/oapi-sdk-gin"
 )
 
 func Http() *http.Server {
 	r := gin.Default()
 	r.Use(middleware.ContentTypeJSON())
 	r.GET("/ping", api.Ping)
-	// jtcw := r.Group("/jtcw")
-	// jtcw.Use(middleware.BearerToken())
-	// {
-	// 	jtcw.POST("/customer_details", api.PostCustomerDetails)
+	r.POST("/webhook/event", sdkginext.NewEventHandlerFunc(global.HOOK))
 
-	// }
 	bltj := r.Group("/bltj")
 	bltj.Use(middleware.BearerToken())
 	{
 		bltj.POST("/performance", api.Performance)
+		bltj.POST("/approval", api.CreateApproval)
 
 	}
 

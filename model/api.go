@@ -1,13 +1,11 @@
 package model
 
-import "net/http"
-
-type ApiReq struct {
-	Body any
+type SuccessResp struct {
+	Msg  string `json:"msg"`
+	Data any    `json:"data,omitempty"`
 }
 
-type ApiResp struct {
-	StatusCode int         `json:"-"`
-	Header     http.Header `json:"-"`
-	RawBody    []byte      `json:"-"`
+type ErrorResp struct {
+	Msg   string `json:"msg"`
+	Error any    `json:"error,omitempty"`
 }
