@@ -54,3 +54,19 @@ func GetUserIdsFromUnionIds(unionIds []string) ([]string, error) {
 	}
 	return userIds, nil
 }
+func GetUserMsgFromUnionId(unionId string) (larkcontact.User, error) {
+	req := larkcontact.NewGetUserReqBuilder().
+		UserId(unionId).
+		UserIdType(`union_id`).
+		Build()
+
+	resp, err := global.FEISHU.Contact.V3.User.Get(context.Background(), req)
+	if err != nil {
+		global.LOGGER.Error("获取用户ID失败", err)
+		return larkcontact.User{}, err
+	}
+	if !resp.Success() {
+		return larkcontact.User{}, fmt.Errorf("获取用户ID失败, %s", resp.CodeError)
+	}
+	return *resp.Data.User, nil
+}

@@ -24,6 +24,14 @@ func Http() *http.Server {
 		bltj.POST("/approval", api.CreateApproval)
 
 	}
+	rwgl := r.Group("/rwgl")
+	rwgl.Use(middleware.BearerToken())
+	{
+		rwgl.POST("/creat_task", api.CreateTask)
+		rwgl.POST("/get_task", api.GetTask)
+		rwgl.POST("/delete_task", api.DeleteTask)
+
+	}
 
 	return &http.Server{
 		Addr:    fmt.Sprintf("%s:%s", global.CONFIG.Addr.Host, global.CONFIG.Addr.Port),

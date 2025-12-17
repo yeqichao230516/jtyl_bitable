@@ -71,11 +71,15 @@ func UpdateRecord(appToken, tableId, recordId string, fields map[string]any) err
 			Build()).
 		Build()
 
-	_, err := global.FEISHU.Bitable.V1.AppTableRecord.Update(context.Background(), req)
+	resp, err := global.FEISHU.Bitable.V1.AppTableRecord.Update(context.Background(), req)
 
 	if err != nil {
 		global.LOGGER.Errorf("UpdateAppTableRecord error: %v", err)
 		return err
+	}
+	if !resp.Success() {
+		fmt.Printf("logId: %s, error response: \n%s", resp.RequestId(), larkcore.Prettify(resp.CodeError))
+		return fmt.Errorf("更新记录失败, logId: %s, error response: %s", resp.RequestId(), larkcore.Prettify(resp.CodeError))
 	}
 	return nil
 }
