@@ -72,5 +72,3 @@ tail app.log
 ```bash
 sudo nano /etc/nginx/nginx.conf
 ```
-
-

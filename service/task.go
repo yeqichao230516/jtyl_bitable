@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"jtyl_bitable/global"
-	"os"
 
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
 	larkdrive "github.com/larksuite/oapi-sdk-go/v3/service/drive/v1"
@@ -84,47 +83,23 @@ func DeleteTask(taskId string) error {
 	return nil
 }
 
-func GetDownloadUrl(fileToken []string) (string, error) {
+func GetDownloadUrl(fileToken []string) ([]*larkdrive.TmpDownloadUrl, error) {
 	req := larkdrive.NewBatchGetTmpDownloadUrlMediaReqBuilder().
 		FileTokens(fileToken).
 		Build()
 	resp, err := global.FEISHU.Drive.V1.Media.BatchGetTmpDownloadUrl(context.Background(), req)
 	if err != nil {
 		global.LOGGER.Error("获取下载链接失败", err)
-		return "", err
+		return nil, err
 	}
 
 	if !resp.Success() {
 		global.LOGGER.Error("获取下载链接失败", larkcore.Prettify(resp.CodeError))
-		return "", fmt.Errorf("获取下载链接失败, logId: %s, error response: %s", resp.RequestId(), larkcore.Prettify(resp.CodeError))
+		return nil, fmt.Errorf("获取下载链接失败, logId: %s, error response: %s", resp.RequestId(), larkcore.Prettify(resp.CodeError))
 	}
 
 	if len(resp.Data.TmpDownloadUrls) == 0 || resp.Data.TmpDownloadUrls[0].TmpDownloadUrl == nil {
-		return "", fmt.Errorf("未获取到下载链接")
+		return nil, fmt.Errorf("未获取到下载链接")
 	}
-	return *resp.Data.TmpDownloadUrls[0].TmpDownloadUrl, nil
-}
-
-func UploadAttachment(guid string, file *os.File) error {
-	req := larktask.NewUploadAttachmentReqBuilder().
-		InputAttachment(larktask.NewInputAttachmentBuilder().
-			ResourceType(`task`).
-			ResourceId(guid).
-			File(file).
-			Build()).
-		Build()
-
-	resp, err := global.FEISHU.Task.V2.Attachment.Upload(context.Background(), req)
-	if err != nil {
-		global.LOGGER.Error("上传附件失败", err)
-		return err
-	}
-
-	if !resp.Success() {
-		global.LOGGER.Error("上传附件失败", larkcore.Prettify(resp.CodeError))
-		return fmt.Errorf("上传附件失败, logId: %s, error response: %s", resp.RequestId(), larkcore.Prettify(resp.CodeError))
-	}
-
-	fmt.Println(larkcore.Prettify(resp))
-	return nil
+	return resp.Data.TmpDownloadUrls, nil
 }

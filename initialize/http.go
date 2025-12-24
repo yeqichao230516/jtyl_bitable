@@ -32,7 +32,6 @@ func Http() *http.Server {
 		rwgl.POST("/delete_task", api.DeleteTask)
 
 	}
-
 	return &http.Server{
 		Addr:    fmt.Sprintf("%s:%s", global.CONFIG.Addr.Host, global.CONFIG.Addr.Port),
 		Handler: r,

@@ -31,6 +31,7 @@ func GetOpenIdsFromUnionIds(unionIds []string) ([]string, error) {
 	}
 	return openIds, nil
 }
+
 func GetUserIdsFromUnionIds(unionIds []string) ([]string, error) {
 	userIds := make([]string, 0, len(unionIds))
 	for _, uid := range unionIds {
@@ -54,6 +55,7 @@ func GetUserIdsFromUnionIds(unionIds []string) ([]string, error) {
 	}
 	return userIds, nil
 }
+
 func GetUserMsgFromUnionId(unionId string) (larkcontact.User, error) {
 	req := larkcontact.NewGetUserReqBuilder().
 		UserId(unionId).

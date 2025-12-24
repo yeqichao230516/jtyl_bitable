@@ -1,8 +1,11 @@
 package api
 
 import (
+	"jtyl_bitable/global"
 	"jtyl_bitable/model"
 	"jtyl_bitable/service"
+	"jtyl_bitable/service/task"
+	"jtyl_bitable/service/token"
 	"jtyl_bitable/utils"
 	"net/http"
 	"strings"
@@ -22,6 +25,7 @@ type createTaskRequest struct {
 	TasklistGuid     string `json:"清单ID"`
 	SectionGuid      string `json:"分组ID"`
 }
+
 type createTaskResponse struct {
 	Guid   string `json:"guid"`
 	Status string `json:"status"`
@@ -32,7 +36,7 @@ func CreateTask(c *gin.Context) {
 	var req createTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, model.ErrorResp{
-			Msg:   "bad request",
+			Msg:   "NG",
 			Error: err.Error(),
 		})
 		return
@@ -45,11 +49,12 @@ func CreateTask(c *gin.Context) {
 		user, err := service.GetUserMsgFromUnionId(assignee)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, model.ErrorResp{
-				Msg:   "internal server error",
+				Msg:   "NG",
 				Error: err.Error(),
 			})
 			return
 		}
+
 		members = append(members, larktask.NewMemberBuilder().
 			Id(assignee).
 			Type(`user`).
@@ -61,7 +66,7 @@ func CreateTask(c *gin.Context) {
 		user, err := service.GetUserMsgFromUnionId(follower)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, model.ErrorResp{
-				Msg:   "internal server error",
+				Msg:   "NG",
 				Error: err.Error(),
 			})
 			return
@@ -74,18 +79,17 @@ func CreateTask(c *gin.Context) {
 			Build())
 	}
 
-	data, err := service.CreateTask(req.Summary, req.Description, req.StartTimestamp, req.DueTimestamp, members, req.TasklistGuid, req.SectionGuid)
+	t, err := service.CreateTask(req.Summary, req.Description, req.StartTimestamp, req.DueTimestamp, members, req.TasklistGuid, req.SectionGuid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResp{
-			Msg:   "internal server error",
+			Msg:   "NG",
 			Error: err.Error(),
 		})
 		return
 	}
-
 	attachmentTokens := strings.Split(req.AttachmentTokens, ",")
-	for _, token := range attachmentTokens {
-		url, err := service.GetDownloadUrl([]string{token})
+	for _, attachmentToken := range attachmentTokens {
+		data, err := service.GetDownloadUrl([]string{attachmentToken})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, model.ErrorResp{
 				Msg:   "NG",
@@ -93,28 +97,40 @@ func CreateTask(c *gin.Context) {
 			return
 		}
 
-		b, err := utils.DownloadURLToTempFile(url)
+		if data[0].TmpDownloadUrl == nil {
+			c.JSON(http.StatusInternalServerError, model.ErrorResp{
+				Msg:   "NG",
+				Error: "未获取到下载链接"})
+			return
+		}
+		file, filePath, err := utils.DownloadFileFromURL(*data[0].TmpDownloadUrl)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, model.ErrorResp{
 				Msg:   "NG",
 				Error: err.Error()})
 			return
 		}
-		defer utils.CleanupTmpFile(b)
-
-		if err = service.UploadAttachment(*data.Task.Guid, b); err != nil {
+		tenantAccessToken, err := token.GetTenantAccessToken(global.CONFIG.App.Id, global.CONFIG.App.Secret)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, model.ErrorResp{
 				Msg:   "NG",
 				Error: err.Error()})
 			return
 		}
+		if err = task.UploadAttachment(tenantAccessToken, *t.Task.Guid, filePath); err != nil {
+			c.JSON(http.StatusInternalServerError, model.ErrorResp{
+				Msg:   "NG",
+				Error: err.Error()})
+			return
+		}
+		utils.CleanupTmpFile(file)
 	}
 	c.JSON(200, model.SuccessResp{
 		Msg: "success",
 		Data: createTaskResponse{
-			Guid:   *data.Task.Guid,
-			Status: *data.Task.Status,
-			Url:    *data.Task.Url,
+			Guid:   *t.Task.Guid,
+			Status: *t.Task.Status,
+			Url:    *t.Task.Url,
 		},
 	})
 }

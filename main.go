@@ -18,3 +18,4 @@ func initializeSystem() {
 	global.HOOK = initialize.Hook()
 	global.HTTP = initialize.Http()
 }
+	
