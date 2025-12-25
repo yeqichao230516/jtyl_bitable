@@ -9,5 +9,6 @@ import (
 
 func Hook() *dispatcher.EventDispatcher {
 	return dispatcher.NewEventDispatcher(global.CONFIG.Event.VerificationToken, global.CONFIG.Event.EncryptKey).
-		OnCustomizedEvent("approval_instance", api.Handler)
+		OnCustomizedEvent("approval_instance", api.ApprovalHandler).
+		OnP2FileBitableRecordChangedV1(api.BitableRecordChangeHandler)
 }

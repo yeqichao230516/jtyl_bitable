@@ -1,74 +1,32 @@
-#jtyl_bitable
+# jtyl_bitable
 
-1.将服务打包成可以在Linux系统的二进制文件
-```bash
-#在windows命令提示符（CMD）中
-set GOOS=linux
-set GOARCH=amd64
-go build -o myservice main.go
+## 1.将服务打包成可以在Linux系统的二进制文件
+```powershell
+$env:GOOS='linux'; $env:GOARCH='amd64'; $env:CGO_ENABLED='0'; go build -ldflags="-s -w" -o myService
 ```
 
-
-#Linux常用命令
+## 2.Linux常用命令
 ```bash
-#切换管理员权限
-sudo su
-
-#查看nginx服务状态
-systemctl status nginx
-#systemctl: 系统服务管理命令。
-#status: 查看服务运行状态的子命令。
-#nginx: 要查看的服务名称。
-
-```
-本地文件上传到云服务器
-```bash
-#在windows命令提示符（CMD）中
-scp .\jtyl_bitable root@118.31.238.252:/var/www/
+#切换到root用户
+sudo su -
+#查看所有运行中的服务
+systemctl list-units --type=service --state=running
+#停止运行服务
+systemctl stop jtyl_bitable
+#删除文件
+rm /var/www/jtyl_bitable/myService
 ```
 
+## 3.上传服务文件到云服务器
 ```bash
-# 1. 创建systemd服务文件
-sudo nano /etc/systemd/system/jtyl_bitable.service
+scp .\myService root@118.31.238.252:/var/www/jtyl_bitable/
+#password: Ye230516@
+```
 
-# 2. 粘贴上面的配置文件（注意修改路径）
-# 3. 启用并启动服务
+## 4.启动服务
+```bash
 sudo systemctl daemon-reload
 sudo systemctl enable jtyl_bitable
 sudo systemctl start jtyl_bitable
-
-# 4. 检查状态
 sudo systemctl status jtyl_bitable
-```
-
-systemd配置文件
-/etc/systemd/system/jtyl_bitable.service
-```ini
-[Unit]
-Description=JTYL Bitable Go Service
-After=network.target
-
-[Service]
-
-Type=simple
-User=root
-WorkingDirectory=/var/www/jtyl_bitable
-ExecStart=/var/www/jtyl_bitable/jtyl_bitable
-Restart=always
-RestartSec=5
-StandardOutput=journal
-StandardError=journal
-
-[Install]
-WantedBy=multi-user.target
-```
-
-读取日志文件app.log
-```bash
-tail app.log
-```
-
-读取nginx配置文件
-```bash
-sudo nano /etc/nginx/nginx.conf
 ```

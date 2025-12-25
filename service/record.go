@@ -140,3 +140,101 @@ func BatchDeleteRecords(appToken, tableId string, recordIds []string) error {
 	}
 	return nil
 }
+
+func SearchNotEqual(token, tableId string, newTime string) []string {
+	req := larkbitable.NewSearchAppTableRecordReqBuilder().
+		AppToken(token).
+		TableId(tableId).
+		PageSize(500).
+		Body(larkbitable.NewSearchAppTableRecordReqBodyBuilder().
+			Build()).
+		Build()
+
+	resp, err := global.FEISHU.Bitable.V1.AppTableRecord.Search(context.Background(), req)
+	if err != nil {
+		global.LOGGER.Error(err)
+		return nil
+	}
+
+	// 检查 resp 和 resp.Data 是否为 nil
+	if resp == nil || resp.Data == nil {
+		global.LOGGER.Warn("搜索响应为空")
+		return nil
+	}
+
+	var ids []string
+	for _, item := range resp.Data.Items {
+		// 严格检查 RecordId 是否为 nil
+		if item == nil || item.RecordId == nil {
+			global.LOGGER.Warn("记录或RecordId为空，跳过")
+			continue
+		}
+
+		// 检查 Fields 是否为 nil
+		if item.Fields == nil {
+			global.LOGGER.Warnf("记录 %s 的Fields为空，添加到删除列表", *item.RecordId)
+			ids = append(ids, *item.RecordId)
+			continue
+		}
+
+		raw, ok := item.Fields["触发时间戳"]
+		if !ok || raw == nil {
+			// 如果没有触发时间戳字段，也删除
+			global.LOGGER.Warnf("记录 %s 没有触发时间戳字段，添加到删除列表", *item.RecordId)
+			ids = append(ids, *item.RecordId)
+			continue
+		}
+
+		recordTime, ok := raw.([]any)
+		if !ok {
+			// 如果不是数组类型，也删除
+			global.LOGGER.Warnf("记录 %s 的触发时间戳不是数组类型，添加到删除列表", *item.RecordId)
+			ids = append(ids, *item.RecordId)
+			continue
+		}
+
+		if len(recordTime) == 0 {
+			// 如果数组为空，也删除
+			global.LOGGER.Warnf("记录 %s 的触发时间戳数组为空，添加到删除列表", *item.RecordId)
+			ids = append(ids, *item.RecordId)
+			continue
+		}
+
+		firstItem, ok := recordTime[0].(map[string]any)
+		if !ok {
+			// 如果不是map类型，也删除
+			global.LOGGER.Warnf("记录 %s 的触发时间戳第一个元素不是map类型，添加到删除列表", *item.RecordId)
+			ids = append(ids, *item.RecordId)
+			continue
+		}
+
+		text, ok := firstItem["text"].(string)
+		if !ok || text != newTime {
+			// 如果text字段不存在或者不等于新时间值，删除
+			global.LOGGER.Infof("记录 %s 的时间值 %s 不等于新时间 %s，添加到删除列表", *item.RecordId, text, newTime)
+			ids = append(ids, *item.RecordId)
+		}
+	}
+
+	global.LOGGER.Infof("搜索到 %d 条时间不等于 %s 的记录", len(ids), newTime)
+	return ids
+}
+
+func BatchDelete(token, tableId string, recordIds []string) error {
+	req := larkbitable.NewBatchDeleteAppTableRecordReqBuilder().
+		AppToken(token).
+		TableId(tableId).
+		Body(larkbitable.NewBatchDeleteAppTableRecordReqBodyBuilder().
+			Records(recordIds).
+			Build()).
+		Build()
+
+	// 发起请求
+	_, err := global.FEISHU.Bitable.V1.AppTableRecord.BatchDelete(context.Background(), req)
+
+	// 处理错误
+	if err != nil {
+		return err
+	}
+	return nil
+}
