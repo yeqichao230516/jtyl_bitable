@@ -1,4 +1,4 @@
-package feishu
+package services_feishu
 
 import (
 	"bytes"
@@ -7,12 +7,12 @@ import (
 	"net/http"
 )
 
-// PostCreateTask 创建任务
-func PostCreateTask(app_id, app_secret string, data map[string]any) (guid string, url string, err error) {
-	accessToken, err := PostTenantAccessToken(app_id, app_secret)
-	if err != nil {
-		return "", "", err
-	}
+type TaskService interface {
+	CreateTask(app_id, app_secret string, data map[string]any) (guid string, url string, err error)
+}
+
+func CreateTask(app_id, app_secret string, data map[string]any) (guid string, url string, err error) {
+	accessToken := GetToken()
 	body, _ := json.Marshal(data)
 	req, _ := http.NewRequest("POST", "https://open.feishu.cn/open-apis/task/v2/tasks", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -39,10 +39,7 @@ func PostCreateTask(app_id, app_secret string, data map[string]any) (guid string
 
 // DeleteTask 删除任务
 func DeleteTask(app_id, app_secret string, guid string) (err error) {
-	accessToken, err := PostTenantAccessToken(app_id, app_secret)
-	if err != nil {
-		return err
-	}
+	accessToken := GetToken()
 	req, _ := http.NewRequest("DELETE", fmt.Sprintf("https://open.feishu.cn/open-apis/task/v2/tasks/%s", guid), nil)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
@@ -67,10 +64,7 @@ func DeleteTask(app_id, app_secret string, guid string) (err error) {
 
 // PostCreateSubtasks 创建子任务
 func PostCreateSubtasks(app_id, app_secret string, guid string, data map[string]any) (err error) {
-	accessToken, err := PostTenantAccessToken(app_id, app_secret)
-	if err != nil {
-		return err
-	}
+	accessToken := GetToken()
 	body, _ := json.Marshal(data)
 	req, _ := http.NewRequest("POST", fmt.Sprintf("https://open.feishu.cn/open-apis/task/v2/tasks/%s/subtasks?user_id_type=open_id", guid), bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
